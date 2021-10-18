@@ -1,0 +1,361 @@
+# These variables get assigned their respective value at startup
+StartingVariables:
+  Name: joy
+  UserName: User
+  SpeechClipsDir: T:/Media/Audio Clips/JOY Speech Clips/
+  TheMinuteHourDir: T:/Media/Music/tmh archive/
+  BrowserExePath: C:/Program Files/Mozilla Firefox/firefox.exe
+  SteamExePath: C:/Program Files (x86)/Steam/Steam.exe
+  SpotifyCLIExePath: C:/Python39/Scripts/spotify.exe
+  VPNCLIExePath: C:/Program Files/Private Internet Access/piactl.exe
+  SearchURL: https://duckduckgo.com/
+  PwshExePath: C:/Program Files (x86)/PowerShell/7/pwsh.exe
+
+# List of Command names (pulled from Commands) that are to be executed at startup. They will be executed with an empty speech input.
+StartupCommands:
+
+# List of Commands, including name, regex, and subsequent actions to be executed
+Commands:
+  Good Morning:
+    Regex: "^good morning {Name}$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Hello.mp3"
+        Volume: 30
+        WaitForFinish: true
+
+  Open Email:
+    Regex: "^({Name} )?open email$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{BrowserExePath}"
+        Arguments: ["https://mail.google.com/mail/u/0/#inbox"]
+
+  Open Plex:
+    Regex: "^({Name} )?open (media server|plex)$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{BrowserExePath}"
+        Arguments: [http://127.0.0.1:32400/web/index.html#!/]
+
+  Open Youtube:
+    Regex: "^({Name} )?open you( )?tube$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{BrowserExePath}"
+        Arguments: [https://www.youtube.com/]
+
+  Open Netflix:
+    Regex: "^({Name} )?open netflix$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{BrowserExePath}"
+        Arguments: [https://www.netflix.com/]
+
+  Open Search:
+    Regex: "^({Name} )?open search$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{BrowserExePath}"
+        Arguments: ["{SearchURL}"]
+
+  Open Steam:
+    Regex: "^({Name} )?open steam$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{SteamExePath}"
+
+  Is Steam Down:
+    Regex: "^({Name} )?is steam( currently)? down$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{BrowserExePath}"
+        Arguments: [https://steamstat.us/]
+
+  Play Chess:
+    Regex: "^({Name} )?would you like to play a game of chess$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{BrowserExePath}"
+        Arguments: [https://www.chess.com/play/computer]
+
+  Open/Close Spotify:
+    Regex: "^({Name} )?(open|close) (spotify|spot (a fi|if i)|music)$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: If
+        ConditionSets:
+          - Conditions:
+            - Type: Equals
+              LeftOperand: "{CMD:1}"
+              RightOperand: open
+        TrueActions:
+          - Type: RunApplication
+            Executable: "C:/Users/{ENV:USERNAME}/AppData/Roaming/Spotify/Spotify.exe"
+        FalseActions:
+          - Type: CloseApplication
+            Application: spotify.exe
+
+  Play/Pause Spotify:
+    Regex: "^({Name} )?(play|pause) (song|music)$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{SpotifyCLIExePath}"
+        Arguments: ["{CMD:1}"]
+
+  Play Next Song:
+    Regex: "^({Name} )?(play next|skip (this|the)) song$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{SpotifyCLIExePath}"
+        Arguments: [next]
+
+  Play Previous Song:
+    Regex: "^({Name} )?play (previous|last) song$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{SpotifyCLIExePath}"
+        Arguments: [previous]
+
+  Say Current Song:
+    Regex: "^({Name} )?what( i|')s the current song$"
+    Actions:
+      - Type: RunApplication
+        Executable: "{SpotifyCLIExePath}"
+        WaitForFinish: true
+        StdOutVariable: currentSpotifySong
+        Arguments: [status]
+      - Type: TextRemovePrefix
+        Text: "{currentSpotifySong}"
+        Prefix: "Paused:  "
+        OutputVariable: currentSpotifySong
+      - Type: TextRemovePrefix
+        Text: "{currentSpotifySong}"
+        Prefix: "Playing: "
+        OutputVariable: currentSpotifySong
+      - Type: SayText
+        Text: "{UserName} the current song is {currentSpotifySong}"
+
+  Set Music Volume:
+    Regex: "^({Name} )?(set|that) (music|song) volume ((.+)( .+)?)( percent)?$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: TextRemoveSuffix
+        Text: "{CMD:3}"
+        Suffix: " percent"
+        OutputVariable: musicVolume
+      - Type: TextParseNumber
+        Text: "{musicVolume}"
+        OutputVariable: musicVolume
+      - Type: RunApplication
+        Executable: "{SpotifyCLIExePath}"
+        Arguments: [volume, to, "{musicVolume}"]
+
+  Stop All Sounds:
+    Regex: "^({Name} )?stop all sound(s)?$"
+    Actions:
+      - Type: StopAllSounds
+
+  Say Current Time:
+    Regex: "^({Name} )?(what( i|')s the (current )?time|what time is it)$"
+    Actions:
+      - Type: SayText
+        Text: "{UserName} the current time is {TIME:%I:%M %p}"
+
+  Toggle Lights:
+    Regex: "^({Name} )?(ch|t)urn (on|off) (the )?(office|off the|authors|home|bedroom) (white|(s)?light|like)(s)?$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: If
+        ConditionSets:
+          - Conditions:
+            - Type: Equals
+              LeftOperand: "{CMD:2}"
+              RightOperand: "on"
+        TrueActions:
+          - Type: SetVariable
+            Value: "true"
+            OutputVariable: turnLightsOn
+        FalseActions:
+          - Type: SetVariable
+            Value: "false"
+            OutputVariable: turnLightsOn
+      - Type: SetVariable
+        Value: "{CMD:4}"
+        OutputVariable: lightsGroup
+      - Type: If
+        ConditionSets:
+          - Conditions:
+            - Type: Equals
+              LeftOperand: "{lightsGroup}"
+              RightOperand: "off the"
+          - Conditions:
+            - Type: Equals
+              LeftOperand: "{lightsGroup}"
+              RightOperand: "authors"
+        TrueActions:
+          - Type: SetVariable
+            Value: office
+            OutputVariable: lightsGroup
+      - Type: RunApplication
+        Executable: C:/Python39/python.exe
+        WorkingDirectory: T:/src/hue_lights
+        Arguments: [./hue_lights.py, -g, "{lightsGroup}", --on, "{turnLightsOn}"]
+
+  Say Current Weather:
+    Regex: "^({Name} )?what( i|')s the (current )?weather$"
+    Actions:
+      - Type: RunApplication
+        Executable: "{PwshExePath}"
+        Arguments: [-NoProfile, -ExecutionPolicy, Unrestricted, -Command, T:/src/Weather/Weather.ps1]
+        WaitForFinish: true
+        StdOutVariable: currentWeather
+      - Type: SayText
+        Text: "It is currently {currentWeather}"
+
+  Bring Back Disco:
+    Regex: "^{Name} bring back disco$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: C:/Python39/python.exe
+        WorkingDirectory: T:/src/hue_lights
+        Arguments: [./hue_lights.py, -g, "office", --effect, "colorloop"]
+
+  Set System Volume:
+    Regex: "^({Name} )?(set|that) system volume ((.+)( .+)?)( percent)?$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: TextRemoveSuffix
+        Text: "{CMD:3}"
+        Suffix: " percent"
+        OutputVariable: systemVolume
+      - Type: TextParseNumber
+        Text: "{systemVolume}"
+        OutputVariable: systemVolume
+      - Type: SetSystemVolume
+        Volume: "{systemVolume}"
+
+  Say VPN State:
+    Regex: "^({Name} )?what('| i)s the current vpn (state|satus)$"
+    Actions:
+      - Type: RunApplication
+        Executable: "{VPNCLIExePath}"
+        Arguments: [get, connectionstate]
+        WaitForFinish: true
+        StdOutVariable: vpnConnectionState
+      - Type: SayText
+        Text: "{UserName} the VPN is currently {vpnConnectionState}"
+
+  Toggle VPN:
+    Regex: "^{Name} (connect|disconnect) (the )?vpn$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: RunApplication
+        Executable: "{VPNCLIExePath}"
+        Arguments: ["{CMD:0}"]
+
+  Create Timer:
+    Regex: "^({Name} )?(create|set|the|that) (the |a |an )?(countdown|timer|alarm) for (.+) (second|minute|hour)(s)?$"
+    Actions:
+      - Type: SayText
+        Text: "Yes {UserName}, creating {CMD:4} {CMD:5} timer"
+      - Type: Timer
+        Offset: "{CMD:4}"
+        Unit: "{CMD:5}"
+        AudioFile: "{TheMinuteHourDir}/textringtone/mouth sounds.mp3"
+        Volume: 30
+
+  List All Timers:
+    Regex: "^({Name} )?list all (alarms|timers)$"
+    Actions:
+      - Type: SayText
+        Text: "{UserName} there are currently {NUMALARMS} timers. {ALARMS}"
+
+  Cancel Timers:
+    Regex: "^({Name} )?(clear|cancel) all (timers|alarms)$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{SpeechClipsDir}/Yes User.mp3"
+        Volume: 30
+      - Type: CancelTimers
+
+  Nice Grill!:
+    Regex: "^({Name} )?that( i|')s a real nice grill (you(r)?|ya|yeah) got there$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{TheMinuteHourDir}/5 - Relay/Bits/That's a Nice Grill.mp3"
+
+  Sweet Little Kevin:
+    Regex: "^({Name} )?tell me a story about sweet little kevin$"
+    Actions:
+      - Type: PlayAudio
+        AudioFile: "{TheMinuteHourDir}/3 - Trials/Bits/Sweet Little Kevin.mp3"
+
+  Test Binding:
+    Regex: "^simulate keyboard$"
+    Actions:
+      - Type: SendKeys
+        Keys: "c"
+
+  Test RunCommand:
+    Regex: "^test run command$"
+    Actions:
+      - Type: RunCommand
+        CommandName: "Say Current Time"
+
+  Test Respone:
+    Regex: "^try response$"
+    Actions:
+      - Type: SayText
+        Text: "Loser says what?"
+      - Type: GetUserSpeech
+        WaitTime: 2.5
+        OutputVariableName: "TestResponse"
+      - Type: SayText
+        Text: "Loser says {TestResponse}. Haha, got you sucker!"
