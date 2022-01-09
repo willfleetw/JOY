@@ -1,3 +1,4 @@
+from typing import Tuple
 import Variables
 
 class Condition(object):
@@ -17,9 +18,16 @@ class Condition(object):
         else:
             return value
 
-class Equals(Condition):
+class BinaryComparison(object):
     _left_operand: str
     _right_operand: str
+
+    def _get_operands(self, cmd_context) -> Tuple[str, str]:
+        left_operand = Variables.replace_tags_in_string(self._left_operand, cmd_context)
+        right_operand = Variables.replace_tags_in_string(self._right_operand, cmd_context)
+        return (left_operand, right_operand)
+
+class Equals(Condition, BinaryComparison):
 
     def __init__(self, left_operand: str = "", right_operand: str = "", negate: bool = False) -> None:
         self._left_operand = left_operand
@@ -29,9 +37,20 @@ class Equals(Condition):
         super().__init__()
 
     def _evaluate_impl(self, cmd_context) -> bool:
-        left_value = Variables.replace_tags_in_string(self._left_operand, cmd_context)
-        right_value = Variables.replace_tags_in_string(self._right_operand, cmd_context)
+        left_value, right_value = self._get_operands(cmd_context)
         return left_value == right_value
+
+class GreaterThan(Condition, BinaryComparison):
+    def __init__(self, left_operand: str = "", right_operand: str = "", negate: bool = False) -> None:
+        self._left_operand = left_operand
+        self._right_operand = right_operand
+        self._negate = negate
+
+        super().__init__()
+
+    def _evaluate_impl(self, cmd_context) -> bool:
+        left_value, right_value = self._get_operands(cmd_context)
+        return left_value > right_value
 
 class ConditionSet(object):
     _conditions: list[Condition]

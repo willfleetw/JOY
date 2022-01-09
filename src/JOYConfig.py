@@ -243,12 +243,29 @@ def parse_equals(config) -> Equals:
 
     return Equals(left_operand=left_operand, right_operand=right_operand, negate=negate)
 
+def parse_greaterthan(config) -> GreaterThan:
+    left_operand = ""
+    if "LeftOperand" in config:
+        left_operand = config["LeftOperand"]
+
+    right_operand = ""
+    if "RightOperand" in config:
+        right_operand = config["RightOperand"]
+
+    negate = False
+    if "Negate" in config:
+        negate = config["Negate"]
+
+    return GreaterThan(left_operand=left_operand, right_operand=right_operand, negate=negate)
+
 def parse_condition(config) -> Condition:
     condition: Condition = None
 
     condition_type = config["Type"]
     if condition_type == "Equals":
         condition = parse_equals(config)
+    elif condition_type == "GreaterThan":
+        condition = parse_greaterthan(config)
 
     return condition
 

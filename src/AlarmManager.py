@@ -21,9 +21,9 @@ class AlarmContext(object):
     def is_expired(self) -> bool:
         return datetime.now() >= self._end_time
 
-    def __str__(self) -> str:
+    def _format_datetime(timestamp: datetime) -> str:
         val = ""
-        times = f"{self._duration}".split(":")
+        times = f"{timestamp}".split(":")
         if times[0] != "0":
             val += f"{times[0]} hour"
             if times[0] == "1":
@@ -39,12 +39,15 @@ class AlarmContext(object):
                 val += "s "
         if times[2] != "00":
             time_val = times[2].removeprefix("0")
-            val += f"{time_val} second"
+            val += f"{round(float(time_val))} second"
             if times[2] == "1":
                 val += " "
             else:
                 val += "s "
         return val
+
+    def __str__(self) -> str:
+        return AlarmContext._format_datetime(self._end_time - datetime.now())
 
 _alarms_lock = threading.Lock()
 _alarms: list[AlarmContext] = []
